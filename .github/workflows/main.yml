@@ -1,4 +1,3 @@
-
 on:
   push:
     branches:
@@ -6,26 +5,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  run_pull:
-    name: run pull
+  deploy:
+    name: Deploy to Server
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install SSH key and setup known hosts
+      - name: Set up SSH key and known hosts
         run: |
+          # Create SSH directory
           mkdir -p ~/.ssh
+          
+          # Install the SSH private key
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          
+          # Add the SSH host to known_hosts to prevent host verification prompts
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to server via SSH
+      - name: Deploy via SSH
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /home/${{ secrets.SSH_USER }} || exit 1
-            sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}
-            sudo -u ${{ secrets.SSH_USER }} git fetch origin
-            sudo -u ${{ secrets.SSH_USER }} git reset --hard origin/main
-            pm2 start /home/${{ secrets.SSH_USER }}/project_name_process.sh --name server
-            exit
-          EOF
+            # Navigate to the project directory and ensure proper permissions
+            cd /home/python || exit 1
+            sudo chown -R python:python /home/python
+            sudo -u python git fetch origin
+            sudo -u python git reset --hard origin/main
 
+            # Restart the process using pm2
+            pm2 restart /home/python/project_name_process.sh --name server || pm2 start /home/python/project_name_process.sh --name server
+          EOF
