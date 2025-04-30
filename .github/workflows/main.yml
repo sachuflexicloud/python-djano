@@ -21,7 +21,7 @@ jobs:
         
     - name: Deploy to server via SSH
       run: |
-       ssh -tt -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+       ssh -tt ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
        cd /home/python || exit 1
        sudo chown -R python:python /home/python
        sudo -u python git fetch origin
