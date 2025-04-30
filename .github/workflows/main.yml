@@ -1,30 +1,46 @@
- 
+name: Deploy Django via SSH with PM2 Script
+
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - ${{ secrets.MAIN_BRANCH }}
 
 jobs:
-  run_pull:
-    name: run pull
+  deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: install ssh keys
-      # check this thread to understand why its needed:
-      # https://stackoverflow.com/a/70447517
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup SSH key
       run: |
-        install -m 600 -D /dev/null ~/.ssh/id_rsa
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
-        
-    - name: Deploy to server via SSH
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+        chmod 600 private_key
+
+    - name: Deploy to Remote Server
       run: |
-       ssh -tt ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-       cd /home/python || exit 1
-       sudo chown -R python:python /home/python
-       sudo -u python git fetch origin
-       sudo -u python git reset --hard origin/main
-       pm2 start /home/python/project_name_process.sh --name server
-       EOF
+        ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd ${{ secrets.WORK_DIR }}
+
+          echo "Pulling latest code..."
+          git pull origin ${{ secrets.MAIN_BRANCH }}
+
+          echo "Activating virtual environment..."
+          source venv/bin/activate
+
+          echo "Installing dependencies..."
+          pip install -r requirements.txt
+
+          echo "Running Django migrations..."
+          python manage.py migrate
+
+          echo "Collecting static files..."
+          python manage.py collectstatic --noinput
+
+          echo "Restarting Django app via PM2..."
+          pm2 delete project_name_process || true
+          pm2 start project_name_process.sh --name project_name_process
+
+          pm2 save
+        EOF
