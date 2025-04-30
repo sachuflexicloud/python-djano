@@ -1,4 +1,4 @@
-name: Deploy Django via SSH with PM2 Script
+name: Deploy Djanago via SSH with PM2 Script
 
 on:
   push:
