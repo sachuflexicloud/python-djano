@@ -25,7 +25,7 @@ jobs:
       - name: Deploy via SSH
         run: |
           # SSH to the server, bypassing host key verification
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -T StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             git pull origin main
             pm2 restart /home/python/project_name_process.sh --name server || pm2 start /home/python/project_name_process.sh --name server
           EOF
