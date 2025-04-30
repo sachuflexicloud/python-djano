@@ -26,7 +26,6 @@ jobs:
         run: |
           # SSH to the server, bypassing host key verification
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            sudo -u python git fetch origin
-            sudo -u python git reset --hard origin/main
+            git pull origin main
             pm2 restart /home/python/project_name_process.sh --name server || pm2 start /home/python/project_name_process.sh --name server
           EOF
