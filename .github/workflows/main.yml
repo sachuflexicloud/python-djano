@@ -11,20 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install SSH key and setup known hosts
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      - name: Install SSH key and setup known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Deploy to server via SSH
-      run: |
+      - name: Deploy to server via SSH
+        run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd /home/${{ secrets.SSH_USER }} || exit 1
-          sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}
-          sudo -u ${{ secrets.SSH_USER }} git fetch origin
-          sudo -u ${{ secrets.SSH_USER }} git reset --hard origin/main
-          pm2 start /home/${{ secrets.SSH_USER }}/project_name_process.sh --name server
-          exit
-        EOF
+            cd /home/${{ secrets.SSH_USER }} || exit 1
+            sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}
+            sudo -u ${{ secrets.SSH_USER }} git fetch origin
+            sudo -u ${{ secrets.SSH_USER }} git reset --hard origin/main
+            pm2 start /home/${{ secrets.SSH_USER }}/project_name_process.sh --name server
+            exit
+          EOF
+
