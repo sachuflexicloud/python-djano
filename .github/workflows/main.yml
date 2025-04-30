@@ -19,10 +19,9 @@ jobs:
     
     - name: Deploy to server via SSH
       run: |
-        ssh -tt -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd /home/python || exit 1
-          sudo chown -R python:python /home/python
-          sudo -u python git fetch origin
-          sudo -u python git reset --hard origin/main
-          pm2 start /home/python/project_name_process.sh 
-        EOF
+       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=3 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+       cd /home/*** || exit 1
+       sudo chown -R ***:*** /home/***
+       sudo -u *** git fetch origin
+       pm2 start /home/***/project_name_process.sh
+       EOF
