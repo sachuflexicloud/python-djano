@@ -24,5 +24,5 @@ jobs:
           sudo chown -R python:python /home/python
           sudo -u python git fetch origin
           sudo -u python git reset --hard origin/main
-          pm2 start /home/python/project_name_process.sh --name server
+          pm2 start /home/python/project_name_process.sh 
         EOF
