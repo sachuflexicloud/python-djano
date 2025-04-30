@@ -1,0 +1,29 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run_pull:
+    name: run pull
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: install ssh keys
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+    - name: Deploy to server via SSH
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+        cd /home/python || exit 1
+        sudo chown -R python:python /home/python
+        sudo -u python git fetch origin
+        sudo -u python git reset --hard origin/main
+
+        # Restart or start the PM2 process for your Python script
+        pm2 restart server || pm2 start /home/python/project_name_process.sh --name server
+        EOF
