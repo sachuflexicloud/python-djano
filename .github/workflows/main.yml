@@ -20,11 +20,7 @@ jobs:
 
     - name: Deploy to server via SSH
       run: |
-        ssh -tt -i ~/.ssh/id_rsa \
-          -o StrictHostKeyChecking=no \
-          -o ServerAliveInterval=60 \
-          -o ServerAliveCountMax=3 \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           cd /home/${{ secrets.SSH_USER }} || exit 1
           sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}
           sudo -u ${{ secrets.SSH_USER }} git fetch origin
