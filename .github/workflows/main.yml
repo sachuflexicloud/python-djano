@@ -26,10 +26,8 @@ jobs:
         run: |
            ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             # Navigate to the project directory and ensure proper permissions
-            cd /home/python || exit 1
-            sudo chown -R python:python /home/python
-            sudo -u python git fetch origin
-            sudo -u python git reset --hard origin/main
+             git fetch origin
+             git reset --hard origin/main
 
             # Restart the process using pm2
             pm2 restart /home/python/project_name_process.sh --name server || pm2 start /home/python/project_name_process.sh --name server
