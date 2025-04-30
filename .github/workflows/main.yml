@@ -10,20 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: install ssh keys
-      # check this thread to understand why its needed:
-      # https://stackoverflow.com/a/70447517
+    - name: Install SSH key and setup known hosts
       run: |
-        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
-        
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+    
     - name: Deploy to server via SSH
       run: |
-       ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-       cd /home/python || exit 1
-       sudo chown -R python:python /home/python
-       sudo -u python git fetch origin
-       sudo -u python git reset --hard origin/main
-       pm2 start project_name_process.sh
-       EOF
+        ssh -tt -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /home/python || exit 1
+          sudo chown -R python:python /home/python
+          sudo -u python git fetch origin
+          sudo -u python git reset --hard origin/main
+          pm2 start /home/python/project_name_process.sh --name server
+        EOF
