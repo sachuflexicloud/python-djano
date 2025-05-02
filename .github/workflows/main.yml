@@ -2,27 +2,28 @@ on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
+  
 jobs:
-  deploy:
+  run_pull:
+    name: run pull
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Setup SSH key
+    - name: install ssh keys
       run: |
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
-        chmod 600 private_key
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
 
     - name: Deploy to Remote Server
       run: |
-        ssh -i private_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ${{ secrets.WORK_DIR }}
+         ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+           cd /home/python || exit 1
 
           echo "Pulling latest code..."
-          git pull origin ${{ secrets.MAIN_BRANCH }}
+          git pull origin main
 
           echo "Activating virtual environment..."
           source venv/bin/activate
@@ -41,4 +42,4 @@ jobs:
           pm2 start project_name_process.sh --name project_name_process
 
           pm2 save
-        EOF
+          EOF
