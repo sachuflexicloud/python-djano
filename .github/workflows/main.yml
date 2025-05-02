@@ -1,50 +1,35 @@
-on:
+ on:
   push:
     branches:
       - main
   workflow_dispatch:
   
-jobs:
+ jobs:
   run_pull:
     name: run pull
     runs-on: ubuntu-latest
     
     steps:
-    - name: Set up SSH key and known hosts
+    - name: install ssh keys
+      # check this thread to understand why its needed:
+      # https://stackoverflow.com/a/70447517
       run: |
-       mkdir -p ~/.ssh
-       install -m 600 -D /dev/null ~/.ssh/id_rsa
-       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-       ssh-keyscan -H sachu-testserver >> ~/.ssh/known_hosts
-       chmod 700 ~/.ssh
-       chmod 600 ~/.ssh/id_rsa
-       echo "Known hosts:"
-       cat ~/.ssh/known_hosts
-
-
-    - name: Deploy to Remote Server
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+        
+    - name: Deploy to server via SSH
       run: |
-         ssh -i ~/.ssh/id_rsa python@sachu-testserver << 'EOF'
-           cd /home/python || exit 1
+       ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+       cd /home/python || exit 1
+       sudo chown -R python:python /home/python
+       sudo -u nodeapp git fetch origin
+       sudo -u nodeapp git reset --hard origin/main
+       pm2 restart project_name_process || pm2 start /home/python/project_name_process.sh --name project_name_process
+       EOF
 
-          echo "Pulling latest code..."
-          git pull origin main
+     
 
-          echo "Activating virtual environment..."
-          source venv/bin/activate
 
-          echo "Installing dependencies..."
-          pip install -r requirements.txt
-
-          echo "Running Django migrations..."
-          python manage.py migrate
-
-          echo "Collecting static files..."
-          python manage.py collectstatic --noinput
-
-          echo "Restarting Django app via PM2..."
-          pm2 delete project_name_process || true
-          pm2 start project_name_process.sh --name project_name_process
-
-          pm2 save
-          EOF
+          
+   
