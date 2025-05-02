@@ -22,7 +22,6 @@
       run: |
        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
        cd /home/python || exit 1
-       chown -R python:python /home/python
        git fetch origin
        git reset --hard origin/main
        pm2 restart project_name_process || pm2 start /home/python/project_name_process.sh --name project_name_process
