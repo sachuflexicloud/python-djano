@@ -1,9 +1,7 @@
-name: Deploy Djang via SSH with PM2 Script
-
 on:
   push:
     branches:
-      - ${{ secrets.MAIN_BRANCH }}
+      - main
 
 jobs:
   deploy:
