@@ -1,7 +1,7 @@
  on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
   
  jobs:
@@ -22,9 +22,9 @@
       run: |
        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
        cd /home/python || exit 1
-       git fetch origin
-       git reset --hard origin/main
-       pm2 restart project_name_process || pm2 start /home/python/project_name_process.sh --name project_name_process
+       git fetch master
+       git reset --hard origin/master
+       pm2 restart project_name_processs || pm2 start /home/python/project_name_process.sh --name project_name_process
        EOF
 
      
